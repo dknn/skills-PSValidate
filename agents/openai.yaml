@@ -1,0 +1,4 @@
+interface:
+  display_name: "PowerShell Validate"
+  short_description: "Validate risky PowerShell script issues"
+  default_prompt: "Use $powershell-validate to inspect this PowerShell script for encoding, parsing, and automation pitfalls."

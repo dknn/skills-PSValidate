@@ -1,0 +1,25 @@
+# Editor metadata
+.vscode/
+.idea/
+*.swp
+*~
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# PowerShell validation and test artifacts
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+PowerShell_transcript.*.txt
+
+# Local logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+.test-*/
