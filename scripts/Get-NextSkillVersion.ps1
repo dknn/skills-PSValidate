@@ -15,9 +15,9 @@ if ($text -cmatch '(?m)^BREAKING[ -]CHANGE:' -or $text -cmatch '(?m)^[a-z]+(?:\(
     $next = 'v{0}.0.0' -f ($version.Major + 1)
 } elseif ($text -cmatch '(?m)^feat(?:\([^\r\n)]*\))?:') {
     $next = 'v{0}.{1}.0' -f $version.Major, ($version.Minor + 1)
-} elseif ($text -cmatch '(?m)^fix(?:\([^\r\n)]*\))?:') {
+} elseif ($text -cmatch '(?m)^(?:fix|test|docs)(?:\([^\r\n)]*\))?:') {
     $next = 'v{0}.{1}.{2}' -f $version.Major, $version.Minor, ($version.Build + 1)
 } else {
-    throw 'No feat, fix or breaking change found since the last stable release.'
+    throw 'No feat, fix, test, docs or breaking change found since the last stable release.'
 }
 Write-Output $next
