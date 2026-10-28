@@ -203,3 +203,33 @@ Official references:
 ## License
 
 This project is released under the [MIT License](LICENSE).
+
+## Versions and releases
+
+This repository is versioned independently with stable SemVer tags
+`vMAJOR.MINOR.PATCH`. All skills in the repository share that release. Skill
+Markdown and PowerShell are distributed as validated source, without compilation.
+
+The workflow calculates the next version from commits after the latest reachable
+stable tag: `fix` increments patch, `feat` increments minor, and a breaking
+change increments major. Breaking changes use `!` in a conventional commit
+header or a `BREAKING CHANGE:` footer. The highest increment wins; other commits
+do not trigger a release by themselves. Published tags are never moved or reused.
+
+Merge a pull request after both `Validate (windows-latest)` and
+`Validate (ubuntu-latest)` pass. Then run **Actions > Release > Run workflow**
+on `main`. The workflow validates that exact commit again,
+creates a new tag, prepares a draft, publishes it, and verifies the release
+is immutable. Administrators enable immutability in repository settings; the
+Actions token intentionally has no administration permission. A failed publication can leave a tag or draft for manual inspection; the
+workflow never overwrites an existing tag. Publish a new version for corrections.
+
+Repository rules require PRs, passing checks, an up-to-date branch, and resolved
+review conversations on main. Force pushes and deletion are blocked. There are
+no bypass actors and no required external approvals, permitting solo maintenance.
+Version tags cannot be updated or deleted; releases are immutable after publication.
+
+Use `$update-dknn-skills` from [skills-utils](https://github.com/dknn/skills-utils)
+to install or update. New installations use Stable; Latest explicitly follows
+the default branch. Installed source choices and pinned versions persist.
+Commit SHAs and managed-file hashes identify installed content, not timestamps.
