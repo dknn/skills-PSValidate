@@ -50,6 +50,13 @@ Run recursively on all PowerShell files in the repository:
 pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path . -Recurse
 ```
 
+To run the behavior tests and measure command coverage, install Pester 6.2.0
+and run `pwsh -NoProfile -File ./tests/Invoke-Coverage.ps1`. The suite measures
+the production PowerShell scripts, including the installation wrapper, and
+fails when command coverage is 98 percent or lower. The report is written to
+`coverage/coverage.xml`; the GitHub Actions test workflow runs the same check
+on Windows and Linux.
+
 ## Install the agent skill
 
 Agent skills use one directory per skill. The directory name should match the
