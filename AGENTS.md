@@ -28,3 +28,9 @@ This project is script-oriented. Common commands should be preferred:
 - Avoid destructive operations unless explicitly requested.
 - Keep script changes scoped to the requested task.
 - Do not assume `.agents` exists; only throw when `.agents` is missing at repo root and the copy task requires it.
+
+## Skill installation after gitship
+- After a successful `gitship` for this repository, check whether a newer stable release of `powershell-validate` has been published.
+- If a newer release exists, replace the old installed version with that release and verify the installed version. Apply this rule only to this repository's skill.
+- Use the existing skill-update workflow and preserve locally modified files. If multiple installation roots or unmanaged conflicts make the target or safe replacement unclear, ask before removing or overwriting anything.
+- Report the installed version and any installations that could not be updated. A new Codex session may be needed to pick up the updated skill.
