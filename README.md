@@ -218,8 +218,8 @@ This repository is versioned independently with stable SemVer tags
 Markdown and PowerShell are distributed as validated source, without compilation.
 
 The workflow calculates the next version from commits after the latest reachable
-stable tag: `fix` increments patch, `feat` increments minor, and a breaking
-change increments major. Breaking changes use `!` in a conventional commit
+stable tag: `fix`, `test`, and `docs` increment patch, `feat` increments minor,
+and a breaking change increments major. Breaking changes use `!` in a conventional commit
 header or a `BREAKING CHANGE:` footer. The highest increment wins; other commits
 do not trigger a release by themselves. Published tags are never moved or reused.
 
