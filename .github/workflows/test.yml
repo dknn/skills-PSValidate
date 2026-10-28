@@ -25,3 +25,6 @@ jobs:
       - name: Run validation
         shell: pwsh
         run: pwsh -NoProfile -File ./tests/Test-SkillPackage.ps1
+      - name: Test release version calculation
+        shell: pwsh
+        run: pwsh -NoProfile -File ./tests/Test-SkillVersion.ps1

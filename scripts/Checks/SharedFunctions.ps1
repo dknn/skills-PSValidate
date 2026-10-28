@@ -113,7 +113,8 @@ function Get-UnwrappedCommandCountFindings {
             }
         }
 
-        foreach ($name in @($unwrappedAssignments.Keys)) {
+        # PSBase: the keys are variable names from the scanned script, which may include "Keys".
+        foreach ($name in @($unwrappedAssignments.PSBase.Keys)) {
             if ($line -match ('\$' + [regex]::Escape($name) + '\.Count\b')) {
                 [pscustomobject]@{
                     Line           = $i + 1

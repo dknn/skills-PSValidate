@@ -210,13 +210,15 @@ This repository is versioned independently with stable SemVer tags
 `vMAJOR.MINOR.PATCH`. All skills in the repository share that release. Skill
 Markdown and PowerShell are distributed as validated source, without compilation.
 
-Use a patch release for compatible corrections, a minor release for compatible
-features, and a major release for breaking instructions, interfaces, or packaging.
-The initial release is `v1.0.0`; do not edit a published tag to fix a release.
+The workflow calculates the next version from commits after the latest reachable
+stable tag: `fix` increments patch, `feat` increments minor, and a breaking
+change increments major. Breaking changes use `!` in a conventional commit
+header or a `BREAKING CHANGE:` footer. The highest increment wins; other commits
+do not trigger a release by themselves. Published tags are never moved or reused.
 
 Merge a pull request after both `Validate (windows-latest)` and
 `Validate (ubuntu-latest)` pass. Then run **Actions > Release > Run workflow**
-on `main` with the new version. The workflow validates that exact commit again,
+on `main`. The workflow validates that exact commit again,
 creates a new tag, prepares a draft, publishes it, and verifies the release
 is immutable. Administrators enable immutability in repository settings; the
 Actions token intentionally has no administration permission. A failed publication can leave a tag or draft for manual inspection; the
