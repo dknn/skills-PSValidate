@@ -18,7 +18,18 @@ try {
         try { & $script } catch { $rejected = $true }
         if (-not $rejected) { throw 'A release without relevant commits must be rejected.' }
         foreach ($case in @(
-            @{ Message = 'fix: repair'; Expected = 'v1.0.1' },
+            @{ Message = 'docs: document behavior'; Expected = 'v1.0.1' },
+            @{ Message = 'test(scope): cover behavior'; Expected = 'v1.0.2' }
+        )) {
+            git -c user.name=Test -c user.email=test@example.invalid commit --quiet --allow-empty -m $case.Message
+            if ($LASTEXITCODE -ne 0) { throw 'Could not create test commit.' }
+            $actual = & $script
+            if ($actual -cne $case.Expected) { throw "Expected $($case.Expected), got $actual" }
+            git tag $case.Expected
+            if ($LASTEXITCODE -ne 0) { throw 'Could not create test tag.' }
+        }
+        foreach ($case in @(
+            @{ Message = 'fix: repair'; Expected = 'v1.0.3' },
             @{ Message = 'feat(scope): add'; Expected = 'v1.1.0' },
             @{ Message = 'feat!: change'; Expected = 'v2.0.0' }
         )) {
