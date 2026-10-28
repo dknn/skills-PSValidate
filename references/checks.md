@@ -105,6 +105,16 @@ PowerShell enumerates command output. A variable assigned with `$items = Get-Thi
 
 Use `$items = @(Get-Thing)` when later code expects array semantics such as `.Count` or indexed access.
 
+### `.Keys` / `.Values` on a hashtable (`dictionary-member-shadowing`)
+
+On a hashtable, member access looks up a key before a property. `$h.Keys`
+returns the value of an entry named `Keys` when the data has one, silently, and
+the same applies to `Values` and `Count`. This bites data you do not control:
+`ConvertFrom-Json -AsHashtable`, configuration files, or names taken from a
+scanned script. Use `$h.PSBase.Keys` / `$h.PSBase.Values`, which always return
+the dictionary members. The check is a warning because the parser cannot see
+the type; `.Count` is not flagged, as it is used on arrays everywhere.
+
 ### Native command piped to `Out-Null`
 
 After `tool.exe ... | Out-Null`, check `$LASTEXITCODE` or throw on failure. `try/catch` alone will not help for native executables. The validator only flags *native* commands here (names that are not `Verb-Noun`); a pure cmdlet such as `Get-ChildItem | Out-Null` is not flagged because cmdlets do not set `$LASTEXITCODE`.

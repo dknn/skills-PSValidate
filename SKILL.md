@@ -83,6 +83,7 @@ Code (PowerShell parser / AST):
 Heuristic line checks (regex):
 
 - `Rename-Item -NewName` receiving what looks like a full path.
+- `.Keys` / `.Values` on a hashtable, which return an entry named `Keys`/`Values` if the data has one; use `.PSBase.Keys` (`dictionary-member-shadowing`).
 - `.Count` on unwrapped command output that should be assigned with `@(...)`.
 
 ## Fixing Guidance

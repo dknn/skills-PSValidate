@@ -62,6 +62,31 @@ function Invoke-ParserChecks {
         }
     }
 
+    # On a hashtable, member access looks up a key before a property, so $h.Keys
+    # returns the value of an entry named "Keys" when the data has one (typical
+    # for ConvertFrom-Json -AsHashtable or user configuration). $h.PSBase.Keys
+    # always returns the keys.
+    $members = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.MemberExpressionAst] -and -not $n.Static }, $true)
+    foreach ($m in $members) {
+        if ($m -is [System.Management.Automation.Language.InvokeMemberExpressionAst]) {
+            continue
+        }
+        if ($m.Member -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) {
+            continue
+        }
+        $memberName = $m.Member.Value
+        if ($memberName -notin @('Keys', 'Values')) {
+            continue
+        }
+        $receiver = $m.Expression
+        if ($receiver -is [System.Management.Automation.Language.MemberExpressionAst] -and
+            $receiver.Member -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+            $receiver.Member.Value -eq 'PSBase') {
+            continue
+        }
+        Add-Finding -Sink $Findings -File $File -Severity 'Warning' -Rule 'dictionary-member-shadowing' -Message ".$memberName on a hashtable returns the value of an entry named '$memberName' if the data has one. Use .PSBase.$memberName when the keys come from data you do not control (JSON, configuration)." -Line $m.Extent.StartLineNumber
+    }
+
     $commands = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.CommandAst] }, $true)
     foreach ($cmd in $commands) {
         if ($cmd.GetCommandName() -eq 'ConvertTo-Json') {
