@@ -5,7 +5,6 @@ PowerShell pitfalls. It is designed for cross-platform use with PowerShell 7+.
 
 ## Table of contents
 
-- [Repository layout](#repository-layout)
 - [Validate a script or folder](#validate-a-script-or-folder)
 - [Install the agent skill](#install-the-agent-skill)
   - [Personal installation for Codex and GitHub Copilot](#personal-installation-for-codex-and-github-copilot)
@@ -13,28 +12,7 @@ PowerShell pitfalls. It is designed for cross-platform use with PowerShell 7+.
   - [Project installation](#project-installation)
   - [Verify skill discovery](#verify-skill-discovery)
 - [License](#license)
-
-## Repository layout
-
-```text
-skills-PSValidate\
-  agents\openai.yaml
-  references\checks.md
-  scripts\
-    Checks\
-    Test-PowerShellValidation.ps1
-  tools\
-    Copy-AgentSkillToUserProfile.ps1
-  Copy-AgentsToUserProfile.ps1
-  AGENTS.md
-  README.md
-  SKILL.md
-```
-
-`SKILL.md` references files under `scripts` and `references`. Install the skill
-as a directory and keep those relative paths together; copying only `SKILL.md`
-produces an incomplete skill. The `agents` directory contains optional OpenAI
-display metadata.
+- [Versions and releases](#versions-and-releases)
 
 ## Validate a script or folder
 
@@ -63,10 +41,11 @@ Agent skills use one directory per skill. The directory name should match the
 skill's `name`, so this skill belongs in a directory named
 `powershell-validate`.
 
-The installation wrapper uses the bundled
-`tools/Copy-AgentSkillToUserProfile.ps1` utility. The reusable source is
-maintained in the `skills-utils` repository, but this repository includes the
-version it needs and has no runtime dependency on `skills-utils`.
+`Copy-AgentsToUserProfile.ps1` copies the skill files and writes
+`.skills-utils-install.json` with SHA-256 file hashes so the installation can
+be updated later with `$update-dknn-skills` from
+[skills-utils](https://github.com/dknn/skills-utils) without unmanaged-file
+conflicts (see [Versions and releases](#versions-and-releases)).
 
 | Product | Personal skill directory | Project skill directory | Reads `.agents/skills` |
 | --- | --- | --- | --- |
@@ -119,16 +98,14 @@ mkdir -p ~/.claude/skills
 ln -s ~/.agents/skills/powershell-validate ~/.claude/skills/powershell-validate
 ```
 
-If links are unavailable, copy the complete skill directory instead. Repeat
-the copy whenever the shared skill changes. Matching files are overwritten;
-stale files in the Claude copy are retained:
+If links are unavailable, install a second copy directly to Claude's skill
+root. Repeat the command whenever the skill changes. Matching files are
+overwritten; pass `-RemoveExtraFiles` to remove stale files inside the
+`powershell-validate` target directory:
 
 ```powershell
-$SharedSkill = Join-Path $HOME ".agents\skills\powershell-validate"
-$ClaudeSkill = Join-Path $HOME ".claude\skills\powershell-validate"
-
-New-Item -ItemType Directory -Path $ClaudeSkill -Force | Out-Null
-Copy-Item -Path "$SharedSkill\*" -Destination $ClaudeSkill -Recurse -Force
+pwsh -NoProfile -File .\Copy-AgentsToUserProfile.ps1 `
+    -TargetRoot (Join-Path $HOME ".claude")
 ```
 
 ### Project installation

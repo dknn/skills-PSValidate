@@ -108,7 +108,7 @@ Describe 'Package and version operations' {
         $source = Join-Path $TestDrive 'source'
         $target = Join-Path $TestDrive 'target'
         $null = New-Item -ItemType Directory -Force -Path $source
-        $installer = Join-Path $root 'tools/Copy-AgentSkillToUserProfile.ps1'
+        $installer = Join-Path $root 'Copy-AgentsToUserProfile.ps1'
         { & $installer -SourceRoot $source -TargetRoot $target } | Should -Throw '*entrypoint*'
         Set-Content -LiteralPath (Join-Path $source 'SKILL.md') -Value 'invalid'
         { & $installer -SourceRoot $source -TargetRoot $target } | Should -Throw '*valid skill name*'
@@ -117,15 +117,18 @@ Describe 'Package and version operations' {
         Set-Content -LiteralPath (Join-Path $source 'scripts/example.ps1') -Value 'test'
         & $installer -SourceRoot $source -TargetRoot $target
         Test-Path -LiteralPath (Join-Path $target 'skills/example/scripts/example.ps1') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $target 'skills/example/.skills-utils-install.json') | Should -BeTrue
         $extra = Join-Path $target 'skills/example/extra.txt'
         Set-Content -LiteralPath $extra -Value 'extra'
         & $installer -SourceRoot $source -TargetRoot $target
         Test-Path -LiteralPath $extra | Should -BeTrue
         & $installer -SourceRoot $source -TargetRoot $target -RemoveExtraFiles
         Test-Path -LiteralPath $extra | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path $target 'skills/example/.skills-utils-install.json') | Should -BeTrue
     }
     It 'installs from the repository wrapper' {
         & (Join-Path $root 'Copy-AgentsToUserProfile.ps1') -TargetRoot (Join-Path $TestDrive 'wrapper')
         Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/SKILL.md') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/.skills-utils-install.json') | Should -BeTrue
     }
 }
