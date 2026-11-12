@@ -131,4 +131,21 @@ Describe 'Package and version operations' {
         Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/SKILL.md') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/.skills-utils-install.json') | Should -BeTrue
     }
+    It 'installs and updates global and repository Copilot instructions idempotently' {
+        $copilotScript = Join-Path $root 'scripts/Install-CopilotInstructions.ps1'
+        $repoDir = Join-Path $TestDrive 'copilot-repo'
+        $homeDir = Join-Path $TestDrive 'copilot-home'
+        $promptsDir = Join-Path $TestDrive 'copilot-prompts'
+        $null = New-Item -ItemType Directory -Force -Path $repoDir, (Join-Path $homeDir '.copilot')
+        Set-Content -LiteralPath (Join-Path $homeDir '.copilot/copilot-instructions.md') -Value '# Existing rule'
+        & $copilotScript -HomePath $homeDir
+        & $copilotScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
+        & $copilotScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
+        (Get-Content -LiteralPath (Join-Path $homeDir '.copilot/copilot-instructions.md') -Raw) | Should -Match 'Existing rule'
+        (Get-Content -LiteralPath (Join-Path $promptsDir 'powershell.instructions.md') -Raw) | Should -Match 'applyTo:'
+        & $copilotScript -RepositoryRoot $repoDir
+        & $copilotScript -RepositoryRoot $repoDir
+        Test-Path -LiteralPath (Join-Path $repoDir '.github/copilot-instructions.md') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $repoDir '.github/instructions/powershell.instructions.md') | Should -BeTrue
+    }
 }
