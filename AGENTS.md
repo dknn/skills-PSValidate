@@ -34,3 +34,12 @@ This project is script-oriented. Common commands should be preferred:
 - If a newer release exists, replace the old installed version with that release and verify the installed version. Apply this rule only to this repository's skill.
 - Use the existing skill-update workflow and preserve locally modified files. If multiple installation roots or unmanaged conflicts make the target or safe replacement unclear, ask before removing or overwriting anything.
 - Report the installed version and any installations that could not be updated. A new Codex session may be needed to pick up the updated skill.
+
+<!-- powershell-validate:start -->
+## PowerShell Validation (powershell-validate)
+
+When a task involves PowerShell commands, scripts, or modules (`.ps1`, `.psm1`, `.psd1`):
+1. Read and follow the `powershell-validate` skill at `.github/skills/powershell-validate/SKILL.md or .agents/skills/powershell-validate/SKILL.md (or ~/.agents/skills/powershell-validate/SKILL.md)` before generating or editing code.
+2. Enforce UTF-8 without BOM for PowerShell 7+, ASCII quotes/punctuation, `Set-StrictMode -Version Latest`, and `$ErrorActionPreference = 'Stop'`.
+3. Run `scripts/Test-PowerShellValidation.ps1` from the skill against created or modified PowerShell files and fix all errors and warnings before finishing.
+<!-- powershell-validate:end -->

@@ -10,7 +10,7 @@ PowerShell pitfalls. It is designed for cross-platform use with PowerShell 7+.
   - [Personal installation for Codex and GitHub Copilot](#personal-installation-for-codex-and-github-copilot)
   - [Make the same installation available to Claude Code](#make-the-same-installation-available-to-claude-code)
   - [Project installation](#project-installation)
-  - [Always apply the skill in GitHub Copilot](#always-apply-the-skill-in-github-copilot)
+  - [Always apply the skill across installed agents](#always-apply-the-skill-across-installed-agents)
   - [Verify skill discovery](#verify-skill-discovery)
 - [License](#license)
 - [Versions and releases](#versions-and-releases)
@@ -153,27 +153,29 @@ Do not create the link if that Claude skill path already contains files. A
 portable alternative is to keep a second complete copy under
 `.claude/skills/powershell-validate`.
 
-### Always apply the skill in GitHub Copilot
+### Always apply the skill across installed agents
 
-The bundled `scripts/Install-CopilotInstructions.ps1` script configures both
-general Copilot instructions and file-scoped `.instructions.md` rules
-(`applyTo: "**/*.ps1,**/*.psm1,**/*.psd1"`) so GitHub Copilot always loads and
-follows `powershell-validate` when working with PowerShell files or commands.
-Existing instructions are preserved; the script manages only its own
-`<!-- powershell-validate:start -->` block.
+The bundled `scripts/Install-AgentInstructions.ps1` script detects installed
+agent products (`.copilot`, VS Code `Code/User`, `.codex`, `.claude`, and
+`.gemini`) and configures their instruction files (plus a `.claude/skills`
+copy when Claude Code is installed and missing the skill) so every installed
+agent loads and follows `powershell-validate` when working with PowerShell
+files or commands. Existing instructions are preserved; the script manages only
+its own `<!-- powershell-validate:start -->` block and skips files that already
+contain an explicit `Always use powershell-validate` rule.
 
-Configure your personal profile globally (`~/.copilot/copilot-instructions.md`
-and VS Code user prompts):
+Configure your personal profile globally across all installed agents:
 
 ```powershell
-pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-CopilotInstructions.ps1"
+pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-AgentInstructions.ps1"
 ```
 
-Or configure a specific repository (`.github/copilot-instructions.md` and
-`.github/instructions/powershell.instructions.md`):
+Or configure a specific repository (`.github/copilot-instructions.md`,
+`.github/instructions/powershell.instructions.md`, and existing `AGENTS.md` /
+`CLAUDE.md`):
 
 ```powershell
-pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-CopilotInstructions.ps1" `
+pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-AgentInstructions.ps1" `
     -RepositoryRoot "C:\path\to\target-repository"
 ```
 
