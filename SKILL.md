@@ -1,6 +1,6 @@
 ---
 name: powershell-validate
-description: Validate and troubleshoot PowerShell scripts for encoding, quoting, parsing, and common Windows automation mistakes. Use whenever Claude or Codex creates, edits, reviews, or debugs `.ps1`, `.psm1`, or `.psd1` files — especially after generating PowerShell from scratch, copy-paste, heredoc output, or cross-shell edits, or when a script fails with symptoms like missing terminators, bad encoding/mojibake, silent `catch` blocks, or suspicious path and regex handling. Run the validator before handing PowerShell back to the user, even if they don't explicitly ask for validation.
+description: Validate and troubleshoot PowerShell scripts, commands, and modules for encoding, quoting, parsing, and common automation mistakes. Use for all tasks involving PowerShell commands or creating, editing, reviewing, or debugging `.ps1`, `.psm1`, and `.psd1` files — especially after generating PowerShell from scratch, copy-paste, heredoc output, or cross-shell edits, or when a script fails with symptoms like missing terminators, bad encoding/mojibake, silent `catch` blocks, or suspicious path and regex handling. Run the validator before handing PowerShell back to the user, even if they don't explicitly ask for validation.
 ---
 
 # PowerShell Validate
@@ -49,6 +49,13 @@ pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./deploy.ps1 -
 
 ```bash
 pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./src -Recurse -FailOn Warning
+```
+
+### Configure GitHub Copilot instructions (global or repository)
+
+```bash
+pwsh -NoProfile -File scripts/Install-CopilotInstructions.ps1
+pwsh -NoProfile -File scripts/Install-CopilotInstructions.ps1 -RepositoryRoot ./target-repo
 ```
 
 ## How It Works
