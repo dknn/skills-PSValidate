@@ -12,7 +12,6 @@ $config.CodeCoverage.Enabled = $true
 $config.CodeCoverage.Path = @(
     (Join-Path $root 'scripts/*.ps1')
     (Join-Path $root 'scripts/Checks/*.ps1')
-    (Join-Path $root 'tools/*.ps1')
     (Join-Path $root 'Copy-AgentsToUserProfile.ps1')
 )
 $config.CodeCoverage.OutputFormat = 'JaCoCo'
