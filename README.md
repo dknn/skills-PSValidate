@@ -5,42 +5,30 @@ PowerShell pitfalls. It is designed for cross-platform use with PowerShell 7+.
 
 ## Table of contents
 
-- [Validate a script or folder](#validate-a-script-or-folder)
 - [Install the agent skill](#install-the-agent-skill)
-  - [Personal installation for Codex and GitHub Copilot](#personal-installation-for-codex-and-github-copilot)
+  - [Quick start: install skill and configure agents](#quick-start-install-skill-and-configure-agents)
+  - [What `Install-AgentInstructions.ps1` does](#what-install-agentinstructionsps1-does)
   - [Make the same installation available to Claude Code](#make-the-same-installation-available-to-claude-code)
   - [Project installation](#project-installation)
-  - [Always apply the skill in GitHub Copilot](#always-apply-the-skill-in-github-copilot)
   - [Verify skill discovery](#verify-skill-discovery)
+- [Validate a script or folder](#validate-a-script-or-folder)
 - [License](#license)
 - [Versions and releases](#versions-and-releases)
 
-## Validate a script or folder
-
-Run against a single file:
-
-```powershell
-pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./scripts/Test-PowerShellValidation.ps1
-```
-
-Run recursively on all PowerShell files in the repository:
-
-```powershell
-pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path . -Recurse
-```
-
-To run the behavior tests and measure command coverage, install Pester 6.2.0
-and run `pwsh -NoProfile -File ./tests/Invoke-Coverage.ps1`. The suite measures
-the production PowerShell scripts, including the installation wrapper, and
-fails when command coverage is 98 percent or lower. The report is written to
-`coverage/coverage.xml`; the GitHub Actions test workflow runs the same check
-on Windows and Linux.
-
 ## Install the agent skill
 
-Agent skills use one directory per skill. The directory name should match the
-skill's `name`, so this skill belongs in a directory named
-`powershell-validate`.
+### Quick start: install skill and configure agents
+
+Run these two commands from the repository root to install the skill and
+configure all installed coding agents on your machine to use it automatically:
+
+```powershell
+# 1. Install the skill to $HOME\.agents\skills\powershell-validate
+pwsh -NoProfile -File .\Copy-AgentsToUserProfile.ps1
+
+# 2. Configure all detected agents (Copilot, VS Code, Codex, Claude Code, Gemini)
+pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-AgentInstructions.ps1"
+```
 
 `Copy-AgentsToUserProfile.ps1` copies the skill files and writes
 `.skills-utils-install.json` with SHA-256 file hashes so the installation can
@@ -48,33 +36,46 @@ be updated later with `$update-dknn-skills` from
 [skills-utils](https://github.com/dknn/skills-utils) without unmanaged-file
 conflicts (see [Versions and releases](#versions-and-releases)).
 
+### What `Install-AgentInstructions.ps1` does
+
+Running `Install-AgentInstructions.ps1` ensures your coding agents always load
+and follow `powershell-validate` whenever they create, edit, review, or execute
+PowerShell scripts, modules, or commands:
+
+- **Detects installed agent products** on your machine and updates only the
+  products you actually have installed:
+  - **GitHub Copilot (`~/.copilot`):** updates `~/.copilot/copilot-instructions.md`.
+  - **VS Code Copilot (`AppData/Roaming/Code/User`):** writes `prompts/powershell.instructions.md` with `applyTo: "**/*.ps1,**/*.psm1,**/*.psd1"`.
+  - **Codex (`~/.codex`):** updates `~/.codex/AGENTS.md` (or skips if `Always use powershell-validate` is already present).
+  - **Claude Code (`~/.claude`):** updates `~/.claude/CLAUDE.md` and installs a skill copy to `~/.claude/skills/powershell-validate` when missing.
+  - **Antigravity / Gemini (`~/.gemini`):** updates `~/.gemini/GEMINI.md`.
+- **Preserves existing instructions:** manages only its own
+  `<!-- powershell-validate:start -->` ... `<!-- powershell-validate:end -->`
+  section and never overwrites unrelated rules.
+- **Supports repository-level setup (`-RepositoryRoot`):** pass
+  `-RepositoryRoot` to configure `.github/copilot-instructions.md`,
+  `.github/instructions/powershell.instructions.md`, and existing `AGENTS.md` /
+  `CLAUDE.md` files for a team repository:
+
+```powershell
+pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-AgentInstructions.ps1" `
+    -RepositoryRoot "C:\path\to\target-repository"
+```
+
 | Product | Personal skill directory | Project skill directory | Reads `.agents/skills` |
 | --- | --- | --- | --- |
 | Codex | `~/.agents/skills` | `<repository>/.agents/skills` | Yes |
 | GitHub Copilot | `~/.agents/skills` or `~/.copilot/skills` | `<repository>/.agents/skills`, `.github/skills`, or `.claude/skills` | Yes |
 | Claude Code | `~/.claude/skills` | `<repository>/.claude/skills` | No; use a link or second copy |
 
-### Personal installation for Codex and GitHub Copilot
-
-Codex and GitHub Copilot both discover personal skills under
-`$HOME/.agents/skills`. Install this skill for the current user from the
-repository root:
-
-```powershell
-pwsh -NoProfile -File .\Copy-AgentsToUserProfile.ps1
-```
-
-The script resolves `$HOME` for the current user, copies the complete skill to
-`$HOME/.agents/skills/powershell-validate`, and prints the resolved destination.
-Matching files are overwritten. Other skills are not changed.
-
 ### Make the same installation available to Claude Code
 
 Claude Code discovers personal skills under `$HOME/.claude/skills`; its
-official discovery paths do not include `$HOME/.agents/skills`. To keep one
-canonical copy, link Claude's skill directory to the shared installation.
+official discovery paths do not include `$HOME/.agents/skills`. Running
+`Install-AgentInstructions.ps1` automatically copies the skill to
+`$HOME/.claude/skills/powershell-validate` when `$HOME/.claude` exists.
 
-On Windows, create a directory junction after completing the shared install:
+If you prefer a Windows directory junction to keep one canonical copy:
 
 ```powershell
 $SharedSkill = Join-Path $HOME ".agents\skills\powershell-validate"
@@ -87,11 +88,6 @@ if (-not (Test-Path -LiteralPath $ClaudeSkill)) {
 }
 ```
 
-Claude Code officially supports symlinked skill directories in current
-releases. A Windows junction is a convenient filesystem link, but if Claude
-does not discover it, use a symbolic link (which may require Developer Mode or
-administrator rights on Windows) or use the complete-copy fallback below.
-
 On macOS or Linux, create a symbolic link:
 
 ```bash
@@ -99,10 +95,7 @@ mkdir -p ~/.claude/skills
 ln -s ~/.agents/skills/powershell-validate ~/.claude/skills/powershell-validate
 ```
 
-If links are unavailable, install a second copy directly to Claude's skill
-root. Repeat the command whenever the skill changes. Matching files are
-overwritten; pass `-RemoveExtraFiles` to remove stale files inside the
-`powershell-validate` target directory:
+Or install a second copy directly to Claude's skill root:
 
 ```powershell
 pwsh -NoProfile -File .\Copy-AgentsToUserProfile.ps1 `
@@ -153,30 +146,6 @@ Do not create the link if that Claude skill path already contains files. A
 portable alternative is to keep a second complete copy under
 `.claude/skills/powershell-validate`.
 
-### Always apply the skill in GitHub Copilot
-
-The bundled `scripts/Install-CopilotInstructions.ps1` script configures both
-general Copilot instructions and file-scoped `.instructions.md` rules
-(`applyTo: "**/*.ps1,**/*.psm1,**/*.psd1"`) so GitHub Copilot always loads and
-follows `powershell-validate` when working with PowerShell files or commands.
-Existing instructions are preserved; the script manages only its own
-`<!-- powershell-validate:start -->` block.
-
-Configure your personal profile globally (`~/.copilot/copilot-instructions.md`
-and VS Code user prompts):
-
-```powershell
-pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-CopilotInstructions.ps1"
-```
-
-Or configure a specific repository (`.github/copilot-instructions.md` and
-`.github/instructions/powershell.instructions.md`):
-
-```powershell
-pwsh -NoProfile -File "$HOME\.agents\skills\powershell-validate\scripts\Install-CopilotInstructions.ps1" `
-    -RepositoryRoot "C:\path\to\target-repository"
-```
-
 ### Verify skill discovery
 
 First verify the installation paths:
@@ -208,6 +177,27 @@ Official references:
 - [Codex: Build skills](https://learn.chatgpt.com/docs/build-skills)
 - [GitHub Copilot: Adding agent skills](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
 - [Claude Code: Extend Claude with skills](https://code.claude.com/docs/en/slash-commands)
+
+## Validate a script or folder
+
+Run against a single file:
+
+```powershell
+pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./scripts/Test-PowerShellValidation.ps1
+```
+
+Run recursively on all PowerShell files in the repository:
+
+```powershell
+pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path . -Recurse
+```
+
+To run the behavior tests and measure command coverage, install Pester 6.2.0
+and run `pwsh -NoProfile -File ./tests/Invoke-Coverage.ps1`. The suite measures
+the production PowerShell scripts, including the installation wrapper, and
+fails when command coverage is 98 percent or lower. The report is written to
+`coverage/coverage.xml`; the GitHub Actions test workflow runs the same check
+on Windows and Linux.
 
 ## License
 

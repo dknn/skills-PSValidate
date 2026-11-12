@@ -51,11 +51,11 @@ pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./deploy.ps1 -
 pwsh -NoProfile -File scripts/Test-PowerShellValidation.ps1 -Path ./src -Recurse -FailOn Warning
 ```
 
-### Configure GitHub Copilot instructions (global or repository)
+### Configure agent instructions (global or repository)
 
 ```bash
-pwsh -NoProfile -File scripts/Install-CopilotInstructions.ps1
-pwsh -NoProfile -File scripts/Install-CopilotInstructions.ps1 -RepositoryRoot ./target-repo
+pwsh -NoProfile -File scripts/Install-AgentInstructions.ps1
+pwsh -NoProfile -File scripts/Install-AgentInstructions.ps1 -RepositoryRoot ./target-repo
 ```
 
 ## How It Works

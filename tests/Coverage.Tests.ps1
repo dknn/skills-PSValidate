@@ -131,21 +131,27 @@ Describe 'Package and version operations' {
         Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/SKILL.md') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $TestDrive 'wrapper/skills/powershell-validate/.skills-utils-install.json') | Should -BeTrue
     }
-    It 'installs and updates global and repository Copilot instructions idempotently' {
-        $copilotScript = Join-Path $root 'scripts/Install-CopilotInstructions.ps1'
+    It 'installs and updates global and repository agent instructions idempotently' {
+        $agentScript = Join-Path $root 'scripts/Install-AgentInstructions.ps1'
         $repoDir = Join-Path $TestDrive 'copilot-repo'
         $homeDir = Join-Path $TestDrive 'copilot-home'
         $promptsDir = Join-Path $TestDrive 'copilot-prompts'
-        $null = New-Item -ItemType Directory -Force -Path $repoDir, (Join-Path $homeDir '.copilot')
+        $null = New-Item -ItemType Directory -Force -Path $repoDir, (Join-Path $homeDir '.copilot'), (Join-Path $homeDir 'AppData/Roaming/Code/User'), (Join-Path $homeDir '.codex'), (Join-Path $homeDir '.claude'), (Join-Path $homeDir '.gemini'), (Join-Path $homeDir '.agents/skills/powershell-validate')
+        Set-Content -LiteralPath (Join-Path $homeDir '.agents/skills/powershell-validate/SKILL.md') -Value 'skill'
         Set-Content -LiteralPath (Join-Path $homeDir '.copilot/copilot-instructions.md') -Value '# Existing rule'
-        & $copilotScript -HomePath $homeDir
-        & $copilotScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
-        & $copilotScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
+        Set-Content -LiteralPath (Join-Path $homeDir '.codex/AGENTS.md') -Value 'Always use powershell-validate for PowerShell work.'
+        Set-Content -LiteralPath (Join-Path $repoDir 'AGENTS.md') -Value '# Repo agents'
+        & $agentScript -HomePath $homeDir
+        & $agentScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
+        & $agentScript -HomePath $homeDir -VSCodePromptsPath $promptsDir
         (Get-Content -LiteralPath (Join-Path $homeDir '.copilot/copilot-instructions.md') -Raw) | Should -Match 'Existing rule'
         (Get-Content -LiteralPath (Join-Path $promptsDir 'powershell.instructions.md') -Raw) | Should -Match 'applyTo:'
-        & $copilotScript -RepositoryRoot $repoDir
-        & $copilotScript -RepositoryRoot $repoDir
+        Test-Path -LiteralPath (Join-Path $homeDir '.claude/skills/powershell-validate/SKILL.md') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $homeDir '.gemini/GEMINI.md') | Should -BeTrue
+        & $agentScript -RepositoryRoot $repoDir
+        & $agentScript -RepositoryRoot $repoDir
         Test-Path -LiteralPath (Join-Path $repoDir '.github/copilot-instructions.md') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path $repoDir '.github/instructions/powershell.instructions.md') | Should -BeTrue
+        (Get-Content -LiteralPath (Join-Path $repoDir 'AGENTS.md') -Raw) | Should -Match 'powershell-validate:start'
     }
 }
